@@ -181,7 +181,7 @@ const MOCK_SETTINGS: LocalAsrSettings = {
     activeModel: "qwen3-asr-0.6b",
     mirror: "huggingface",
     modelsBaseDir: null,
-    modelsRootDir: "~/Library/Application Support/OpenLess/models",
+    modelsRootDir: "~/Library/Application Support/ZeroType/models",
     engineAvailable: false,
 }
 
@@ -225,7 +225,7 @@ export function setLocalAsrModelsBaseDir(
         () => ({
             modelsBaseDir,
             modelsRootDir: modelsBaseDir
-                ? `${modelsBaseDir}/OpenLess/models`
+                ? `${modelsBaseDir}/ZeroType/models`
                 : MOCK_SETTINGS.modelsRootDir,
             isDefault: !modelsBaseDir,
         }),

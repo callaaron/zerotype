@@ -307,7 +307,7 @@ export function UpdateDialog({
         <div style={{ fontSize: 15, fontWeight: 650, marginBottom: 8 }}>{t(`settings.about.updateDialog.${status}.title`)}</div>
         <div style={{ fontSize: 12, color: 'var(--ol-ink-3)', lineHeight: 1.6, marginBottom: 14, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
           {androidInstalled
-            ? t('settings.about.updateDialog.androidInstalled.desc', { version, defaultValue: '系统安装器已打开，请按提示完成安装。安装后重新打开 OpenLess 即可使用 {{version}}。' })
+            ? t('settings.about.updateDialog.androidInstalled.desc', { version, defaultValue: '系统安装器已打开，请按提示完成安装。安装后重新打开 ZeroType 即可使用 {{version}}。' })
             : installError
               ? t('settings.about.updateDialog.installError.desc', { error: errorMessage || t('settings.about.updateError') })
               : t(`settings.about.updateDialog.${status}.desc`, { version })}

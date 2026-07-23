@@ -310,7 +310,7 @@ function DesktopOnboarding({
 
   useEffect(() => {
     void refresh();
-    // issue #470：纯事件驱动，去掉每秒轮询。授权必经系统设置 App，切回 OpenLess 必触发 focus/visibilitychange。
+    // issue #470：纯事件驱动，去掉每秒轮询。授权必经系统设置 App，切回 ZeroType 必触发 focus/visibilitychange。
     const onFocus = () => { void refresh(); };
     const onVisibility = () => { if (document.visibilityState === 'visible') void refresh(); };
     window.addEventListener('focus', onFocus);
@@ -488,7 +488,7 @@ function BrandHeader({ title, desc, compact = false }: { title: string; desc: st
     <div style={{ display: 'flex', alignItems: 'center', gap: compact ? 12 : 14, marginBottom: compact ? 4 : 18 }}>
       <img
         src="AppIcon.png"
-        alt="OpenLess"
+        alt="ZeroType"
         style={{
           width: compact ? 48 : 52,
           height: compact ? 48 : 52,

@@ -87,7 +87,7 @@ interface FloatingShellProps {
 export function FloatingShell({ os: osProp, initialTab = 'overview', initialSettings = false }: FloatingShellProps) {
   const os = osProp ?? detectOS();
   return (
-    <WindowChrome os={os} title="OpenLess" height="100%">
+    <WindowChrome os={os} title="ZeroType" height="100%">
       <FloatingShellBody os={os} initialTab={initialTab} initialSettings={initialSettings} />
     </WindowChrome>
   );
@@ -214,7 +214,7 @@ function FloatingShellBody({ os, initialTab, initialSettings }: { os: OS; initia
   return (
     // 不再为 macOS 红绿灯预留顶部 28px 空条（用户反馈「块上方多一条丑横条」）：
     // 侧栏与内容块都顶到窗口最上沿，原生红绿灯直接浮在侧栏左上角的块面上。
-    // 侧栏内 brand 行在 mac 上加 topClearance 让「OpenLess」避开红绿灯。
+    // 侧栏内 brand 行在 mac 上加 topClearance 让「ZeroType」避开红绿灯。
     <div style={{ flex: 1, position: 'relative', display: 'flex', flexDirection: 'column', minHeight: 0, paddingTop: 0, background: 'var(--ol-app-shell-bg)' }}>
 
       {mobile && (
@@ -256,10 +256,10 @@ function FloatingShellBody({ os, initialTab, initialSettings }: { os: OS; initia
           <div style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '2px 8px 12px' }}>
             <img
               src="AppIcon.png"
-              alt="OpenLess"
+              alt="ZeroType"
               style={{ width: 22, height: 22, borderRadius: 5, flexShrink: 0, boxShadow: '0 1px 2px rgba(0,0,0,.1), 0 0 0 0.5px rgba(0,0,0,.06)' }} />
 
-            <span style={{ flex: 1, fontSize: 13.5, fontWeight: 600, letterSpacing: '-0.01em', color: 'var(--ol-ink)', whiteSpace: 'nowrap' }}>OpenLess</span>
+            <span style={{ flex: 1, fontSize: 13.5, fontWeight: 600, letterSpacing: '-0.01em', color: 'var(--ol-ink)', whiteSpace: 'nowrap' }}>ZeroType</span>
           </div>
 
           {/* nav — 扁平项 + 可展开分组（用户拍板结构）。扁平项：概览/历史/词汇。

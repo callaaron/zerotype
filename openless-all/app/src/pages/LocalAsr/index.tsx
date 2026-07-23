@@ -827,7 +827,7 @@ export function LocalAsr({ embedded = false }: LocalAsrProps = {}) {
 
     const handleChooseModelsBaseDir = async () => {
         if (!isTauri) {
-            await applyModelsBaseDir("~/OpenLessModels")
+            await applyModelsBaseDir("~/ZeroTypeModels")
             return
         }
         const { open } = await import("@tauri-apps/plugin-dialog")

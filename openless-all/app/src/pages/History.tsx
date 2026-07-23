@@ -1,5 +1,5 @@
 // History.tsx — 接 Tauri 后端 list_history / delete_history_entry / clear_history。
-// 真实数据来自 ~/Library/Application Support/OpenLess/history.json。
+// 真实数据来自 ~/Library/Application Support/ZeroType/history.json。
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -210,7 +210,7 @@ export function History() {
         if (!dataUrl || dataUrl === 'data:audio/wav;base64,') throw new Error('empty recording');
         const a = document.createElement('a');
         a.href = dataUrl;
-        a.download = `openless-recording-${item.id}.wav`;
+        a.download = `zerotype-recording-${item.id}.wav`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
