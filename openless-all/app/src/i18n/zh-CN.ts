@@ -1137,6 +1137,8 @@ export const zhCN = {
       about: '关于',
       helpCenter: '帮助中心',
       releaseNotes: '发布日志',
+      account: '账户',
+      voiceprint: '声纹管理',
     },
     personalize: {
       font: '字体大小',
@@ -1152,7 +1154,7 @@ export const zhCN = {
       checkUpdate: '检查更新',
       checkUpdateBtn: '检查',
       docs: '文档',
-      docsBtn: 'openless.app/docs ↗',
+      docsBtn: '使用文档 ↗',
       feedback: '反馈渠道',
       feedbackBtn: 'GitHub Issues ↗',
       source: '源码',

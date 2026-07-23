@@ -3,9 +3,8 @@
 // 「加入 Beta 渠道」已挪到「高级」页底部（见 BetaChannelSection），这里图标旁
 // 只保留查正式版的「检查更新」按钮。
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Icon } from '../../components/Icon';
 import { Row } from '../../components/ui/Row';
 import { getPlatformCapabilities, openExternal } from '../../lib/ipc';
 import type { PlatformCapabilities } from '../../lib/types';
@@ -14,29 +13,17 @@ import { Card } from '../_atoms';
 import { btnGhostStyle, SectionTitle } from './shared';
 import { CheckUpdateButton } from './CheckUpdateButton';
 
-const HELP_URL = 'https://github.com/Open-Less/openless#readme';
-const RELEASE_NOTES_URL = 'https://github.com/Open-Less/openless/releases';
+const GITHUB_URL = 'https://github.com/finelab/zerotype';
+const HELP_URL = `${GITHUB_URL}#readme`;
+const RELEASE_NOTES_URL = `${GITHUB_URL}/releases`;
 
 export function AboutSection() {
   const { t } = useTranslation();
-  const [qqCopied, setQqCopied] = useState(false);
   const [platformCaps, setPlatformCaps] = useState<PlatformCapabilities | null>(null);
-  const qqCopiedRef = useRef<number | null>(null);
 
   useEffect(() => {
     void getPlatformCapabilities().then(setPlatformCaps);
   }, []);
-
-  useEffect(() => () => {
-    if (qqCopiedRef.current) clearTimeout(qqCopiedRef.current);
-  }, []);
-
-  const copyQq = () => {
-    navigator.clipboard?.writeText('1078960553');
-    setQqCopied(true);
-    if (qqCopiedRef.current) clearTimeout(qqCopiedRef.current);
-    qqCopiedRef.current = window.setTimeout(() => setQqCopied(false), 1500);
-  };
 
   return (
     <>
@@ -49,7 +36,7 @@ export function AboutSection() {
             style={{ width: 56, height: 56, borderRadius: 13, boxShadow: '0 4px 10px rgba(0,0,0,.10), 0 0 0 0.5px rgba(0,0,0,.06)' }}
           />
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 17, fontWeight: 600 }}>OpenLess</div>
+            <div style={{ fontSize: 17, fontWeight: 600 }}>ZeroType</div>
             <div style={{ fontSize: 12, color: 'var(--ol-ink-3)', marginTop: 2 }}>
               {t('modal.about.tagline')} · {APP_VERSION_LABEL}
             </div>
@@ -67,7 +54,7 @@ export function AboutSection() {
       <Card>
         <SectionTitle>{t('settings.about.linksTitle')}</SectionTitle>
         <Row label={t('modal.about.source')}>
-          <button style={btnGhostStyle} onClick={() => openExternal('https://github.com/Open-Less/openless')}>
+          <button style={btnGhostStyle} onClick={() => openExternal(GITHUB_URL)}>
             GitHub
           </button>
         </Row>
@@ -76,35 +63,10 @@ export function AboutSection() {
             {t('modal.about.docsBtn')}
           </button>
         </Row>
-        <Row label={t('modal.sections.helpCenter')}>
-          <button style={btnGhostStyle} onClick={() => openExternal(HELP_URL)}>
-            {t('modal.sections.helpCenter')}
-          </button>
-        </Row>
-        <Row label={t('modal.sections.releaseNotes')}>
-          <button style={btnGhostStyle} onClick={() => openExternal(RELEASE_NOTES_URL)}>
-            {t('modal.sections.releaseNotes')}
-          </button>
-        </Row>
         <Row label={t('modal.about.feedback')}>
-          <button style={btnGhostStyle} onClick={() => openExternal('https://github.com/Open-Less/openless/issues')}>
+          <button style={btnGhostStyle} onClick={() => openExternal(`${GITHUB_URL}/issues`)}>
             {t('modal.about.feedbackBtn')}
           </button>
-        </Row>
-        <Row label={t('modal.about.qq')}>
-          <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-            <kbd style={{
-              padding: '4px 10px', fontSize: 12, fontFamily: 'var(--ol-font-mono)',
-              borderRadius: 6, background: 'var(--ol-surface-2)',
-              border: '0.5px solid var(--ol-line-strong)',
-              boxShadow: '0 1px 0 rgba(0,0,0,0.04)',
-              color: 'var(--ol-ink-2)',
-            }}>1078960553</kbd>
-            <button onClick={copyQq} title={t('modal.about.copyQq')} style={btnGhostStyle}>
-              <Icon name="copy" size={14} />
-            </button>
-            {qqCopied && <span style={{ fontSize: 11, color: 'var(--ol-ok)', whiteSpace: 'nowrap' }}>{t('common.copied')}</span>}
-          </div>
         </Row>
       </Card>
     </>

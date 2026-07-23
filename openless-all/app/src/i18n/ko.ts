@@ -1107,6 +1107,8 @@ export const ko: typeof zhCN = {
       about: '정보',
       helpCenter: '도움말 센터',
       releaseNotes: '릴리스 노트',
+      account: '계정',
+      voiceprint: '음성 인식',
     },
     personalize: {
       font: '글꼴 크기',
@@ -1122,7 +1124,7 @@ export const ko: typeof zhCN = {
       checkUpdate: '업데이트 확인',
       checkUpdateBtn: '확인',
       docs: '문서',
-      docsBtn: 'openless.app/docs ↗',
+      docsBtn: '문서 ↗',
       feedback: '피드백 채널',
       feedbackBtn: 'GitHub Issues ↗',
       source: '소스',

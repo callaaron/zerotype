@@ -3566,6 +3566,47 @@ pub(super) async fn end_session(inner: &Arc<Inner>) -> Result<(), String> {
         log::warn!("[coord] activity bump failed: {e}");
     }
 
+    // ── ZeroType: 配额记录 ──
+    // 记录本次转写的字数消耗。非阻断：即使记录失败也不影响听写结果。
+    if let Some(ref user_id) = inner.active_user_id.lock().clone() {
+        let char_count = polished.chars().count() as u64;
+        if let Err(e) = inner.billing.record_usage(user_id, char_count) {
+            log::warn!("[coord] billing record_usage failed: {e}");
+        }
+    }
+
+    // ── ZeroType: 热词自学习 ──
+    // 从本次转写原文中提取候选热词，异步更新学习状态。
+    // 不阻塞主流程：即使学习失败也不影响本次听写结果。
+    if !raw.text.is_empty() {
+        let now = chrono::Utc::now().to_rfc3339();
+        if let Err(e) = inner.hotword_learner.ingest_session(&raw.text, &now) {
+            log::warn!("[coord] hotword ingest failed: {e}");
+        }
+        // 每 10 次成功听写执行一次 decay + cleanup（热词学习存储有 7 天去重，不会频繁执行）
+        let session_count = inner.history.list().map(|l| l.len()).unwrap_or(0) as u64;
+        if session_count % 10 == 0 {
+            if let Err(e) = inner.hotword_learner.apply_decay(&now) {
+                log::warn!("[coord] hotword decay failed: {e}");
+            }
+            if let Err(e) = inner.hotword_learner.cleanup(&now) {
+                log::warn!("[coord] hotword cleanup failed: {e}");
+            }
+        }
+        // 检查是否有可自动推广的候选词 → 加入词典
+        if let Ok(candidates) = inner.hotword_learner.get_auto_promote(&now) {
+            for c in candidates {
+                log::info!(
+                    "[coord] auto-promoting hotword '{}' (score={})",
+                    c.phrase, c.score
+                );
+                if inner.vocab.add(c.phrase.clone(), Some(format!("自动学习 (score={})", c.score))).is_ok() {
+                    let _ = inner.hotword_learner.mark_promoted(&c.phrase);
+                }
+            }
+        }
+    }
+
     // 远程输入：把本次最终文字回传给手机端。remote_server 的 WS handler 订阅了
     // "remote:result"（mod.rs:614），但此前全仓从未 emit，导致手机结果区永远空（#691）。
     // 与上面的 vocab:updated 同模式：无手机连接时无人转发 = 无害空操作。

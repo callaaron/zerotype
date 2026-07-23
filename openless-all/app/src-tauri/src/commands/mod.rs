@@ -64,6 +64,9 @@ pub(crate) use crate::types::{
     StyleSystemPrompts, UpdateChannel, UserPreferences, VocabPresetStore,
 };
 
+mod auth;
+mod billing;
+mod voiceprint;
 mod credentials;
 mod dictation;
 mod dictionary;
@@ -86,6 +89,9 @@ mod settings;
 mod sherpa_asr;
 mod style_packs;
 
+pub use auth::*;
+pub use billing::*;
+pub use voiceprint::*;
 pub use credentials::*;
 pub use dictation::*;
 pub use dictionary::*;

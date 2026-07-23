@@ -49,14 +49,14 @@ pub(crate) use style_pack_archive::STYLE_PACK_ARCHIVE_MAX_COMPRESSED_BYTES;
 const HISTORY_CAP: usize = 200;
 const PREFERENCES_FILE: &str = "preferences.json";
 
-fn data_dir() -> Result<PathBuf> {
+pub(crate) fn data_dir() -> Result<PathBuf> {
     #[cfg(target_os = "macos")]
     {
         let home = std::env::var("HOME").context("HOME not set")?;
         Ok(PathBuf::from(home)
             .join("Library")
             .join("Application Support")
-            .join("OpenLess"))
+            .join("ZeroType"))
     }
 
     #[cfg(target_os = "windows")]
@@ -76,7 +76,7 @@ fn data_dir() -> Result<PathBuf> {
         Ok(PathBuf::from(home)
             .join(".local")
             .join("share")
-            .join("OpenLess"))
+            .join("ZeroType"))
     }
 
     #[cfg(target_os = "android")]
@@ -88,7 +88,7 @@ fn data_dir() -> Result<PathBuf> {
     }
 }
 
-fn ensure_dir(dir: &Path) -> Result<()> {
+pub(crate) fn ensure_dir(dir: &Path) -> Result<()> {
     fs::create_dir_all(dir).with_context(|| format!("create dir failed: {}", dir.display()))?;
     Ok(())
 }
@@ -96,7 +96,7 @@ fn ensure_dir(dir: &Path) -> Result<()> {
 /// Atomic write: write to a unique `*.tmp-<uuid>` first, then rename onto the
 /// target path. The unique suffix lets concurrent writers each own their own
 /// tmp file, so a parallel rename never finds its source already taken.
-fn atomic_write(path: &Path, contents: &[u8]) -> Result<()> {
+pub(crate) fn atomic_write(path: &Path, contents: &[u8]) -> Result<()> {
     if let Some(parent) = path.parent() {
         ensure_dir(parent)?;
     }
@@ -114,7 +114,7 @@ fn atomic_write(path: &Path, contents: &[u8]) -> Result<()> {
     Ok(())
 }
 
-fn read_or_default<T: for<'de> Deserialize<'de> + Default>(path: &Path) -> Result<T> {
+pub(crate) fn read_or_default<T: for<'de> Deserialize<'de> + Default>(path: &Path) -> Result<T> {
     if !path.exists() {
         return Ok(T::default());
     }

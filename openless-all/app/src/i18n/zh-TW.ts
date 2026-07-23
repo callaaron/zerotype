@@ -1105,6 +1105,8 @@ export const zhTW: typeof zhCN = {
       about: '關於',
       helpCenter: '幫助中心',
       releaseNotes: '發佈日誌',
+      account: '帳戶',
+      voiceprint: '聲紋管理',
     },
     personalize: {
       font: '字體大小',
@@ -1120,7 +1122,7 @@ export const zhTW: typeof zhCN = {
       checkUpdate: '檢查更新',
       checkUpdateBtn: '檢查',
       docs: '文檔',
-      docsBtn: 'openless.app/docs ↗',
+      docsBtn: '使用文檔 ↗',
       feedback: '反饋渠道',
       feedbackBtn: 'GitHub Issues ↗',
       source: '原始碼',

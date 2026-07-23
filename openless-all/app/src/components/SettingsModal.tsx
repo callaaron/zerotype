@@ -17,6 +17,8 @@ import { openExternal } from '../lib/ipc';
 import { useMobileLayout } from '../lib/useMobileLayout';
 import type { OS } from './WindowChrome';
 import { AboutTab, GeneralTab, ServicesTab, PrivacyTab, AdvancedTab } from '../pages/settings/tabs';
+import { AccountSection } from '../pages/settings/AccountSection';
+import { VoiceprintSection } from '../pages/settings/VoiceprintSection';
 import { chipSelectedStyle } from '../pages/settings/shared';
 
 // 稳定 tab ID（与 i18n key `modal.sections.*` 一致）。
@@ -24,6 +26,8 @@ export type SettingsSectionId =
   | 'general'
   | 'services'
   | 'privacy'
+  | 'account'
+  | 'voiceprint'
   | 'advanced'
   | 'about';
 
@@ -40,14 +44,16 @@ interface ModalNavItem {
   href?: string;
 }
 
-const HELP_URL = 'https://github.com/Open-Less/openless#readme';
-const RELEASE_NOTES_URL = 'https://github.com/Open-Less/openless/releases';
+const HELP_URL = 'https://github.com/finelab/zerotype#readme';
+const RELEASE_NOTES_URL = 'https://github.com/finelab/zerotype/releases';
 
 // 第一组：可选中的 tab；第二组：外部链接（永远不 active）。
 const TAB_ITEMS: ModalNavItem[] = [
   { id: 'general', icon: 'settings' },
   { id: 'services', icon: 'cloud' },
   { id: 'privacy', icon: 'shield' },
+  { id: 'account', icon: 'user' },
+  { id: 'voiceprint', icon: 'mic' },
   { id: 'advanced', icon: 'bolt' },
   { id: 'about', icon: 'info' },
 ];
@@ -260,6 +266,8 @@ export function SettingsModal({ os: _os, onClose, initialSettingsSection }: Sett
               {section === 'general' && <GeneralTab />}
               {section === 'services' && <ServicesTab />}
               {section === 'privacy' && <PrivacyTab />}
+              {section === 'account' && <AccountSection />}
+              {section === 'voiceprint' && <VoiceprintSection />}
               {section === 'advanced' && <AdvancedTab />}
               {section === 'about' && <AboutTab />}
             </div>

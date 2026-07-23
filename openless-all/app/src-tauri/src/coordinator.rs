@@ -445,6 +445,16 @@ struct Inner {
     style_packs: StylePackStore,
     vocab: DictionaryStore,
     correction_rules: CorrectionRuleStore,
+    /// 热词自学习引擎：从转写历史中自动提取高频短语，建议加入用户词库。
+    hotword_learner: crate::hotword::store::HotwordStore,
+    /// 用户认证系统：注册/登录/会话管理。
+    auth: crate::auth::AuthStore,
+    /// 计费与配额：每周免费额度 + 使用追踪。
+    billing: crate::billing::BillingStore,
+    /// 声纹识别：说话人注册/识别/匹配。
+    voiceprint: crate::voiceprint::SpeakerProfileStore,
+    /// 当前登录用户的 ID（None = 未登录）。
+    active_user_id: Mutex<Option<String>>,
     inserter: TextInserter,
     #[cfg(target_os = "windows")]
     windows_ime: WindowsImeSessionController,
@@ -647,6 +657,22 @@ impl Coordinator {
                 log::error!("[coord] CorrectionRuleStore init failed: {e}; 降级为空纠错规则");
                 CorrectionRuleStore::new_fallback()
             });
+            let hotword_learner = crate::hotword::store::HotwordStore::new().unwrap_or_else(|e| {
+                log::error!("[coord] HotwordStore init failed: {e}; hotword learning disabled");
+                crate::hotword::store::HotwordStore::new().unwrap()
+            });
+            let auth = crate::auth::AuthStore::new().unwrap_or_else(|e| {
+                log::error!("[coord] AuthStore init failed: {e}");
+                panic!("AuthStore is required"); // Auth is fundamental, no fallback
+            });
+            let billing = crate::billing::BillingStore::new().unwrap_or_else(|e| {
+                log::error!("[coord] BillingStore init failed: {e}");
+                crate::billing::BillingStore::new().unwrap() // Also fundamental
+            });
+            let voiceprint = crate::voiceprint::SpeakerProfileStore::from_data_dir().unwrap_or_else(|e| {
+                log::error!("[coord] Voiceprint init failed: {e}; 声纹功能禁用");
+                crate::voiceprint::SpeakerProfileStore::from_data_dir().unwrap()
+            });
 
             let activity = ActivityStore::load().unwrap_or_else(|e| {
                 log::error!("[coord] ActivityStore init failed: {e}; 活动计数降级为内存态");
@@ -662,6 +688,11 @@ impl Coordinator {
                     style_packs,
                     vocab,
                     correction_rules,
+                    hotword_learner,
+                    auth,
+                    billing,
+                    voiceprint,
+                    active_user_id: Mutex::new(None),
                     inserter: TextInserter::new(),
                     state: Mutex::new(SessionState::default()),
                     asr: Mutex::new(None),
@@ -1407,6 +1438,33 @@ impl Coordinator {
     }
     pub fn correction_rules(&self) -> &CorrectionRuleStore {
         &self.inner.correction_rules
+    }
+    pub fn hotword_learner(&self) -> &crate::hotword::store::HotwordStore {
+        &self.inner.hotword_learner
+    }
+    pub fn auth(&self) -> &crate::auth::AuthStore {
+        &self.inner.auth
+    }
+    pub fn billing(&self) -> &crate::billing::BillingStore {
+        &self.inner.billing
+    }
+    pub fn voiceprint(&self) -> &crate::voiceprint::SpeakerProfileStore {
+        &self.inner.voiceprint
+    }
+
+    /// Set the active logged-in user. Returns the user ID.
+    pub fn set_active_user(&self, user_id: String) {
+        *self.inner.active_user_id.lock() = Some(user_id);
+    }
+
+    /// Get the active user ID, if logged in.
+    pub fn active_user_id(&self) -> Option<String> {
+        self.inner.active_user_id.lock().clone()
+    }
+
+    /// Clear the active user (logout).
+    pub fn clear_active_user(&self) {
+        *self.inner.active_user_id.lock() = None;
     }
 
     pub fn update_hotkey_binding(&self) {

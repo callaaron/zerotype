@@ -1139,6 +1139,8 @@ export const en: typeof zhCN = {
       about: 'About',
       helpCenter: 'Help center',
       releaseNotes: 'Release notes',
+      account: 'Account',
+      voiceprint: 'Voiceprint',
     },
     personalize: {
       font: 'Font size',
@@ -1154,7 +1156,7 @@ export const en: typeof zhCN = {
       checkUpdate: 'Check for updates',
       checkUpdateBtn: 'Check',
       docs: 'Docs',
-      docsBtn: 'openless.app/docs ↗',
+      docsBtn: 'Documentation ↗',
       feedback: 'Feedback channel',
       feedbackBtn: 'GitHub Issues ↗',
       source: 'Source',

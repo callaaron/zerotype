@@ -1107,6 +1107,8 @@ export const ja: typeof zhCN = {
       about: '情報',
       helpCenter: 'ヘルプセンター',
       releaseNotes: 'リリースノート',
+      account: 'アカウント',
+      voiceprint: '声紋管理',
     },
     personalize: {
       font: 'フォントサイズ',
@@ -1122,7 +1124,7 @@ export const ja: typeof zhCN = {
       checkUpdate: 'アップデート確認',
       checkUpdateBtn: '確認',
       docs: 'ドキュメント',
-      docsBtn: 'openless.app/docs ↗',
+      docsBtn: 'ドキュメント ↗',
       feedback: 'フィードバックチャネル',
       feedbackBtn: 'GitHub Issues ↗',
       source: 'ソース',

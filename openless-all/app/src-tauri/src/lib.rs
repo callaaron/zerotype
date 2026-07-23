@@ -2,9 +2,14 @@
     target_os = "linux",
     allow(dead_code, unused_imports, unused_variables)
 )]
-//! OpenLess Tauri backend.
+//! ZeroType Tauri backend.
 //!
-//! Modules mirror the original Swift libraries (one purpose per file):
+//! Forked from OpenLess (MIT). Extended with:
+//! - hotword learning engine
+//! - voiceprint recognition
+//! - user auth & billing
+//!
+//! Core modules:
 //! - hotkey: global hotkey monitor
 //! - recorder: microphone capture (16 kHz mono Int16 PCM)
 //! - asr: streaming ASR providers (Volcengine SAUC bigmodel)
@@ -17,6 +22,8 @@
 mod android;
 mod asr;
 mod audio_mute;
+mod auth;
+mod billing;
 mod cli;
 mod coding_agent;
 #[cfg(not(mobile))]
@@ -36,6 +43,7 @@ mod endpoint_security;
 mod external_url;
 #[cfg(not(mobile))]
 mod global_hotkey_runtime;
+mod hotword;
 #[cfg(not(mobile))]
 #[path = "hotkey.rs"]
 mod hotkey;
@@ -77,6 +85,7 @@ mod side_aware_combo;
 #[path = "mobile_stubs/shortcut_binding.rs"]
 mod shortcut_binding;
 mod types;
+mod voiceprint;
 #[cfg(not(mobile))]
 mod unicode_keystroke;
 #[cfg(mobile)]
@@ -314,6 +323,21 @@ macro_rules! app_invoke_handler_desktop {
             reset_accessibility_permission_and_restart_app,
             log_client_error,
             set_windows_caption_theme,
+            // ZeroType extensions
+            commands::register,
+            commands::login,
+            commands::logout,
+            commands::validate_session,
+            commands::get_auth_status,
+            commands::list_users,
+            commands::get_quota_status,
+            commands::check_quota_before_record,
+            commands::admin_set_user_quota,
+            commands::get_weekly_free_chars,
+            commands::voiceprint_enroll,
+            commands::voiceprint_identify,
+            commands::voiceprint_list,
+            commands::voiceprint_remove,
         ]
     };
 }
