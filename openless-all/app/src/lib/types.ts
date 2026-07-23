@@ -85,6 +85,10 @@ export interface VocabPreset {
   id: string;
   name: string;
   phrases: string[];
+  /** 'corpus' = 领域语料库（可选启用）；缺省视为 'preset' 场景预设。 */
+  kind?: 'preset' | 'corpus';
+  /** 语料/预设的说明，UI 中以 tooltip 展示。 */
+  description?: string;
 }
 
 export interface VocabPresetStore {

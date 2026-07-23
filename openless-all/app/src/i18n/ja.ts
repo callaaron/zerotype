@@ -406,6 +406,9 @@ export const ja: typeof zhCN = {
       newPreset: '新しいプリセット',
       namePlaceholder: 'プリセット名',
       wordsPlaceholder: '語彙（カンマまたは改行区切り）',
+      corpusTag: 'コーパス',
+      corpusTitle: '分野コーパス（任意）',
+      sceneTitle: 'シーンプリセット',
     },
   },
   style: {

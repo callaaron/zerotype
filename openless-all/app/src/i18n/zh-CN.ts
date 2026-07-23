@@ -402,6 +402,9 @@ export const zhCN = {
       newPreset: '新预设',
       namePlaceholder: '预设名称',
       wordsPlaceholder: '词条（用逗号或换行分隔）',
+      corpusTag: '语料库',
+      corpusTitle: '领域语料库（可选启用）',
+      sceneTitle: '场景预设',
     },
   },
   style: {

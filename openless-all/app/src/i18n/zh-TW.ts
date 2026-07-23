@@ -404,6 +404,9 @@ export const zhTW: typeof zhCN = {
       newPreset: '新預設',
       namePlaceholder: '預設名稱',
       wordsPlaceholder: '詞條（用逗號或換行分隔）',
+      corpusTag: '語料庫',
+      corpusTitle: '領域語料庫（可選啟用）',
+      sceneTitle: '場景預設',
     },
   },
   style: {

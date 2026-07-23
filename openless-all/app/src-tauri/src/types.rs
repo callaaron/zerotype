@@ -226,6 +226,12 @@ pub struct VocabPreset {
     pub id: String,
     pub name: String,
     pub phrases: Vec<String>,
+    /// 'corpus' = 领域语料库（可选启用）；缺省视为 'preset' 场景预设。
+    #[serde(default)]
+    pub kind: Option<String>,
+    /// 说明，前端以 tooltip 展示。Rust 侧不消费，仅为持久化兼容。
+    #[serde(default)]
+    pub description: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]

@@ -404,6 +404,9 @@ export const en: typeof zhCN = {
       newPreset: 'New preset',
       namePlaceholder: 'Preset name',
       wordsPlaceholder: 'Terms (comma or newline separated)',
+      corpusTag: 'Corpus',
+      corpusTitle: 'Domain corpus (optional)',
+      sceneTitle: 'Scenario presets',
     },
   },
   style: {

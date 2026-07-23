@@ -406,6 +406,9 @@ export const ko: typeof zhCN = {
       newPreset: '새 프리셋',
       namePlaceholder: '프리셋 이름',
       wordsPlaceholder: '어휘(쉼표 또는 줄바꿈으로 구분)',
+      corpusTag: '코퍼스',
+      corpusTitle: '분야 코퍼스(선택)',
+      sceneTitle: '시나리오 프리셋',
     },
   },
   style: {

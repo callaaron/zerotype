@@ -274,24 +274,76 @@ export function Vocab() {
           title={t('vocab.presets.title')}
           desc={t('vocab.presets.tip')}
         >
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-            {presets.map(p => (
-              <button
-                key={p.id}
-                onClick={() => togglePreset(p.id)}
-                style={{
-                  border: '0.5px solid var(--ol-line-strong)',
-                  borderRadius: 999,
-                  padding: '4px 10px',
-                  fontSize: 12,
-                  background: selectedPresetIds.includes(p.id) ? 'var(--ol-blue-soft)' : 'var(--ol-surface-2)',
-                }}
-              >
-                {p.name}
-              </button>
-            ))}
-            <Btn size="sm" variant="ghost" onClick={createPreset}>{t('vocab.presets.create')}</Btn>
-            <Btn size="sm" variant="primary" onClick={applySelectedPresets}>{t('vocab.presets.apply')}</Btn>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {(() => {
+              const corpusPresets = presets.filter(p => p.kind === 'corpus');
+              const scenePresets = presets.filter(p => p.kind !== 'corpus');
+              const renderChips = (list: VocabPreset[]) => (
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                  {list.map(p => {
+                    const isCorpus = p.kind === 'corpus';
+                    const active = selectedPresetIds.includes(p.id);
+                    return (
+                      <button
+                        key={p.id}
+                        title={p.description}
+                        onClick={() => togglePreset(p.id)}
+                        style={{
+                          border: '0.5px solid var(--ol-line-strong)',
+                          borderRadius: 999,
+                          padding: '4px 10px',
+                          fontSize: 12,
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 6,
+                          background: active ? 'var(--ol-blue-soft)' : 'var(--ol-surface-2)',
+                        }}
+                      >
+                        <span>{p.name}</span>
+                        {isCorpus && (
+                          <span
+                            style={{
+                              fontSize: 10,
+                              lineHeight: 1,
+                              padding: '2px 5px',
+                              borderRadius: 6,
+                              background: 'var(--ol-blue)',
+                              color: '#fff',
+                            }}
+                          >
+                            {t('vocab.presets.corpusTag')}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              );
+              return (
+                <>
+                  {corpusPresets.length > 0 && (
+                    <div>
+                      <div style={{ fontSize: 12, color: 'var(--ol-ink-4)', marginBottom: 6 }}>
+                        {t('vocab.presets.corpusTitle')}
+                      </div>
+                      {renderChips(corpusPresets)}
+                    </div>
+                  )}
+                  {scenePresets.length > 0 && (
+                    <div>
+                      <div style={{ fontSize: 12, color: 'var(--ol-ink-4)', marginBottom: 6 }}>
+                        {t('vocab.presets.sceneTitle')}
+                      </div>
+                      {renderChips(scenePresets)}
+                    </div>
+                  )}
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <Btn size="sm" variant="ghost" onClick={createPreset}>{t('vocab.presets.create')}</Btn>
+                    <Btn size="sm" variant="primary" onClick={applySelectedPresets}>{t('vocab.presets.apply')}</Btn>
+                  </div>
+                </>
+              );
+            })()}
           </div>
           {editingPresetId && (
             <div style={{ marginTop: 10, display: 'grid', gap: 8 }}>
