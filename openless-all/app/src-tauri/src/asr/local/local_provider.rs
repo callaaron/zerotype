@@ -69,10 +69,10 @@ impl LocalQwenAsr {
         let mut samples_f32 = i16_le_bytes_to_f32(&pcm_bytes);
         // `transcribe_stream` 内部按 2s chunk 切片；末 chunk < 2s 且缓冲没有
         // 静默尾巴时，C 引擎不会把它当作"语音已结束"，该 chunk 的转写结果
-        // 会被丢弃，导致末段内容消失。这里追加 0.5s 静默（@16kHz = 8000 个
-        // f32 零值）作为收尾信号。`duration_ms` 仍按原始缓冲长度计算（上面
-        // 一行），padding 不计入。
-        samples_f32.extend(std::iter::repeat(0.0f32).take(8_000));
+        // 会被丢弃，导致末段内容消失。这里追加 1.0s 静默（@16kHz = 16000 个
+        // f32 零值）作为收尾信号（0.5s 在尾句较长时仍可能截断，加长到 1.0s 更稳）。
+        // `duration_ms` 仍按原始缓冲长度计算（上面一行），padding 不计入。
+        samples_f32.extend(std::iter::repeat(0.0f32).take(16_000));
 
         // 注册 token 回调：每个稳定 token 抛 `local-asr-token` 事件。
         // capsule 前端按 sessionId 累积显示。回调安装、native 调用和解绑
