@@ -156,6 +156,72 @@ async fn dictation_flow_end_to_end_with_mock_providers() {
 }
 
 #[tokio::test]
+async fn ws_streaming_session_end_to_end() {
+    let port = spawn_mock_provider().await;
+    let state = test_state(port).await;
+    let app = build_router(state.clone());
+
+    // 在临时端口上真实启动服务器（WS 升级需要真实 socket）。
+    let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+    let server_port = listener.local_addr().unwrap().port();
+    let server = tokio::spawn(async move {
+        axum::serve(listener, app).await.unwrap();
+    });
+
+    // 注册拿 token
+    let reg_app = build_router(state.clone());
+    let (status, reg) = send_json(
+        &reg_app,
+        "POST",
+        "/auth/register",
+        Some(json!({ "email": "ws@zerotype.app", "password": "secret123" })),
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+    let token = reg["token"].as_str().unwrap().to_string();
+
+    // 连接 WS
+    let url = format!("ws://127.0.0.1:{server_port}/ws");
+    let (mut ws, _) = tokio_tungstenite::connect_async(&url).await.unwrap();
+    use futures_util::{SinkExt, StreamExt};
+
+    // hello
+    ws.send(tokio_tungstenite::tungstenite::Message::Text(
+        json!({ "type": "hello", "token": token }).to_string().into(),
+    ))
+    .await
+    .unwrap();
+    let ready = ws.next().await.unwrap().unwrap();
+    assert!(
+        ready.to_text().unwrap().contains("ready"),
+        "应收到 ready: {ready}"
+    );
+
+    // pcm（2 秒静音帧）
+    let pcm = base64::engine::general_purpose::STANDARD.encode(vec![0u8; 32000]);
+    ws.send(tokio_tungstenite::tungstenite::Message::Text(
+        json!({ "type": "pcm", "data": pcm }).to_string().into(),
+    ))
+    .await
+    .unwrap();
+
+    // finalize → final
+    ws.send(tokio_tungstenite::tungstenite::Message::Text(
+        json!({ "type": "finalize" }).to_string().into(),
+    ))
+    .await
+    .unwrap();
+    let final_msg = ws.next().await.unwrap().unwrap();
+    let final_json: serde_json::Value = serde_json::from_str(final_msg.to_text().unwrap()).unwrap();
+    assert_eq!(final_json["type"], "final");
+    assert_eq!(final_json["text"], "这是一段润色后的文字。");
+    assert_eq!(final_json["chars"], 11);
+
+    server.abort();
+}
+
+#[tokio::test]
 async fn jwt_guards_me_endpoint() {
     let port = spawn_mock_provider().await;
     let state = test_state(port).await;

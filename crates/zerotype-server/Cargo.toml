@@ -29,4 +29,5 @@ uuid = { version = "1", features = ["v4"] }
 zerotype-core = { path = "../zerotype-core" }
 
 [dev-dependencies]
+tokio-tungstenite = { version = "0.24", features = ["rustls-tls-webpki-roots"] }
 tower = { version = "0.5", features = ["util"] }
