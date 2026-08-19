@@ -105,7 +105,7 @@ pub(super) fn context_premise(
 /// (`llm_gemini.rs`) 共享同一套 prompt 装配规则——不再担心两路 LLM
 /// 在 `system_prompt` 拼接顺序、context_premise 注入时机、
 /// polish_context_instruction 追加条件上慢慢漂移。
-pub(crate) fn compose_polish_prompts(
+pub fn compose_polish_prompts(
     raw_text: &str,
     _mode: PolishMode,
     hotwords: &[String],
@@ -148,7 +148,7 @@ pub(crate) fn compose_polish_prompts(
 /// 翻译路径的 `(system_prompt, user_prompt)` 装配——和 polish 一样供两路 LLM 客户端共用。
 /// 翻译模式以 `target_language` 为唯一输出语言约束，OutputLanguagePreference 在这里被
 /// 强制设为 Auto 以避免 UI 偏好（如 ja）与 target_language（如 en）冲突。
-pub(crate) fn assemble_polish_system_prompt(
+pub fn assemble_polish_system_prompt(
     style_system_prompt: &str,
     hotwords: &[String],
     working_languages: &[String],
@@ -194,7 +194,7 @@ pub(crate) fn assemble_polish_system_prompt(
     }
 }
 
-pub(crate) fn compose_translate_prompts(
+pub fn compose_translate_prompts(
     raw_text: &str,
     target_language: &str,
     working_languages: &[String],
@@ -215,7 +215,7 @@ pub(crate) fn compose_translate_prompts(
 }
 
 /// QA 划词问答的 system_prompt 装配。两路 LLM 客户端共用。
-pub(crate) fn compose_qa_system_prompt(
+pub fn compose_qa_system_prompt(
     working_languages: &[String],
     chinese_script_preference: ChineseScriptPreference,
     output_language_preference: OutputLanguagePreference,

@@ -1,0 +1,218 @@
+//! 共享 HTTP 客户端 + 带重试的请求发送。
+//!
+//! 背景：原先每个网络命令各自 `reqwest::Client::new()`，连接池互不复用 —— 一次
+//! 成功的 TLS 连接用完即弃，下一个命令又得重新握手。在握手不稳定的网络下（代理
+//! 分流等）首次握手经常被重置，用户得反复重试才能用。
+//!
+//! 这里提供两件东西：
+//! - `http()`：进程级共享客户端。一次握手成功后的连接进连接池，后续命令直接复用，
+//!   不再付握手成本。
+//! - `send_with_retry`：只对**连接层失败**（`is_connect()` —— 握手重置 / 连接被拒
+//!   等）做指数退避重试。这类失败发生在请求送达服务端之前、且通常是瞬时的（代理
+//!   分流抖动等），重试既幂等安全又有意义。**不重试超时与其他请求层错误**：超时
+//!   可能发生在服务端已收到之后（重试 POST / DELETE 会重复执行）；`is_request()`
+//!   类错误多为确定性失败（如 endpoint 配置错误），重试只是徒增数秒延迟。HTTP
+//!   4xx/5xx 同样不重试 —— 服务端已应答，状态码交给调用方判断。
+
+use std::collections::HashMap;
+use std::time::Duration;
+
+use once_cell::sync::Lazy;
+use parking_lot::Mutex;
+
+static HTTP: Lazy<reqwest::Client> = Lazy::new(|| {
+    reqwest::Client::builder()
+        // 握手单独限时：卡在握手上要尽快失败，好让 send_with_retry 立即重试。
+        .connect_timeout(Duration::from_secs(8))
+        // 连接池：一条握手成功的连接保留 90s 供后续命令复用。
+        .pool_idle_timeout(Duration::from_secs(90))
+        .pool_max_idle_per_host(8)
+        .tcp_keepalive(Duration::from_secs(30))
+        .user_agent(concat!("OpenLess/", env!("CARGO_PKG_VERSION")))
+        .build()
+        .unwrap_or_else(|_| reqwest::Client::new())
+});
+
+/// HTTP client for requests carrying OAuth device credentials or bearer tokens.
+/// Redirects are disabled so secrets are never replayed to a different origin.
+static CREDENTIAL_HTTP: Lazy<reqwest::Client> = Lazy::new(|| {
+    reqwest::Client::builder()
+        .connect_timeout(Duration::from_secs(8))
+        .pool_idle_timeout(Duration::from_secs(90))
+        .pool_max_idle_per_host(8)
+        .tcp_keepalive(Duration::from_secs(30))
+        .redirect(reqwest::redirect::Policy::none())
+        .user_agent(concat!("OpenLess/", env!("CARGO_PKG_VERSION")))
+        .build()
+        .expect("build no-redirect credential HTTP client")
+});
+
+/// Anonymous HTTP client for public endpoints that must fail closed on redirects.
+static ANONYMOUS_NO_REDIRECT_HTTP: Lazy<reqwest::Client> = Lazy::new(|| {
+    reqwest::Client::builder()
+        .connect_timeout(Duration::from_secs(8))
+        .pool_idle_timeout(Duration::from_secs(90))
+        .pool_max_idle_per_host(8)
+        .tcp_keepalive(Duration::from_secs(30))
+        .redirect(reqwest::redirect::Policy::none())
+        .user_agent(concat!("OpenLess/", env!("CARGO_PKG_VERSION")))
+        .build()
+        .expect("build anonymous no-redirect HTTP client")
+});
+
+/// 进程级共享 HTTP 客户端。带连接池 —— 一次握手成功后的连接被后续请求复用。
+pub fn http() -> &'static reqwest::Client {
+    &HTTP
+}
+
+pub fn credential_http() -> &'static reqwest::Client {
+    &CREDENTIAL_HTTP
+}
+
+pub fn anonymous_no_redirect_http() -> &'static reqwest::Client {
+    &ANONYMOUS_NO_REDIRECT_HTTP
+}
+
+/// 按 `(timeout_secs, no_proxy)` 缓存并复用 `reqwest::Client`。
+///
+/// LLM / ASR provider 过去每次请求都新建一个 `reqwest::Client`，新客户端连接池是
+/// 空的 —— 于是每句话都要重新 TLS 握手（~100–300ms）。这里把建好的客户端按其配置
+/// 缓存：相同配置的后续 provider 直接 `clone()` 复用同一连接池（`reqwest::Client`
+/// 内部是 `Arc`，clone 共享连接池与配置），握手成本只在首次付一次。
+///
+/// `build` 只在首次 miss 时调用，必须产出与该 `key` 语义一致的客户端。
+pub fn cached_client<F>(key: (u64, bool), build: F) -> reqwest::Client
+where
+    F: FnOnce() -> reqwest::Client,
+{
+    static CACHE: Lazy<Mutex<HashMap<(u64, bool), reqwest::Client>>> =
+        Lazy::new(|| Mutex::new(HashMap::new()));
+    CACHE.lock().entry(key).or_insert_with(build).clone()
+}
+
+/// Render a user-configured URL for logs without credentials or secret-bearing components.
+pub fn sanitized_url_for_logs(raw_url: &str) -> String {
+    let Ok(mut url) = reqwest::Url::parse(raw_url.trim()) else {
+        return "<invalid-url>".to_string();
+    };
+    if !matches!(url.scheme(), "http" | "https")
+        || url.set_username("").is_err()
+        || url.set_password(None).is_err()
+    {
+        return "<invalid-url>".to_string();
+    }
+    url.set_query(None);
+    url.set_fragment(None);
+    url.to_string()
+}
+
+/// Stable diagnostic category for a reqwest failure. Unlike `Display`, this never embeds its URL.
+pub fn request_error_kind(error: &reqwest::Error) -> &'static str {
+    if error.is_timeout() {
+        "timeout"
+    } else if error.is_connect() {
+        "connection"
+    } else if error.is_body() || error.is_decode() {
+        "response-body"
+    } else {
+        "request"
+    }
+}
+
+/// 单次请求最多尝试的次数。失败本身很快（握手重置 ~0.5s），10 次总耗时仍可控。
+const MAX_ATTEMPTS: u32 = 10;
+
+/// 发送请求，只对连接层失败（`is_connect()`：握手重置 / 连接被拒等）做指数退避重试。
+///
+/// `make` 每次尝试都重新构造 `RequestBuilder`（`send()` 会消耗它）。只重试
+/// `is_connect()` —— 连接尚未建立、请求未送达服务端，且这类失败通常是瞬时的，
+/// 重试幂等安全且有价值。超时（可能服务端已在处理）与其他 `is_request()` 类错误
+/// （多为 endpoint 配置错误等确定性失败）都不重试。拿到任意 HTTP 响应（含
+/// 4xx/5xx）即返回，状态码由调用方自行判断。
+pub async fn send_with_retry<F>(make: F) -> reqwest::Result<reqwest::Response>
+where
+    F: Fn() -> reqwest::RequestBuilder,
+{
+    let mut attempt: u32 = 0;
+    loop {
+        attempt += 1;
+        match make().send().await {
+            Ok(resp) => return Ok(resp),
+            Err(err) => {
+                let retryable = err.is_connect();
+                if !retryable || attempt >= MAX_ATTEMPTS {
+                    return Err(err);
+                }
+                // 150 / 300 / 600 / 900 / 900 … ms 退避。
+                let backoff = (150u64 * 2u64.pow((attempt - 1).min(3))).min(900);
+                let failure = request_error_kind(&err);
+                log::warn!(
+                    "[net] transient {failure} failure (attempt {attempt}/{MAX_ATTEMPTS}), retry in {backoff}ms"
+                );
+                tokio::time::sleep(Duration::from_millis(backoff)).await;
+            }
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{credential_http, sanitized_url_for_logs};
+    use std::time::Duration;
+    use tokio::io::{AsyncReadExt, AsyncWriteExt};
+    use tokio::net::TcpListener;
+
+    #[tokio::test]
+    async fn credential_client_never_follows_redirects_or_forwards_bearer() {
+        let redirect_target = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let target_url = format!("http://{}", redirect_target.local_addr().unwrap());
+        let source = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let source_url = format!("http://{}", source.local_addr().unwrap());
+        let source_task = tokio::spawn(async move {
+            let (mut stream, _) = source.accept().await.unwrap();
+            let mut request = [0u8; 2048];
+            let read = stream.read(&mut request).await.unwrap();
+            assert!(String::from_utf8_lossy(&request[..read])
+                .to_ascii_lowercase()
+                .contains("authorization: bearer gho_redirect_test"));
+            let response = format!(
+                "HTTP/1.1 302 Found\r\nLocation: {target_url}\r\nContent-Length: 0\r\nConnection: close\r\n\r\n"
+            );
+            stream.write_all(response.as_bytes()).await.unwrap();
+        });
+
+        let response = credential_http()
+            .get(source_url)
+            .bearer_auth("gho_redirect_test")
+            .send()
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), reqwest::StatusCode::FOUND);
+        assert!(
+            tokio::time::timeout(Duration::from_millis(150), redirect_target.accept())
+                .await
+                .is_err()
+        );
+        source_task.await.unwrap();
+    }
+
+    #[test]
+    fn log_url_removes_userinfo_query_and_fragment() {
+        let rendered = sanitized_url_for_logs(
+            "https://alice:password@example.com:8443/v1/models?token=secret#private",
+        );
+        assert_eq!(rendered, "https://example.com:8443/v1/models");
+        for secret in ["alice", "password", "token", "secret", "private"] {
+            assert!(!rendered.contains(secret), "log URL leaked {secret}");
+        }
+    }
+
+    #[test]
+    fn log_url_never_echoes_malformed_input() {
+        assert_eq!(
+            sanitized_url_for_logs("not a URL?token=secret#private"),
+            "<invalid-url>"
+        );
+    }
+}

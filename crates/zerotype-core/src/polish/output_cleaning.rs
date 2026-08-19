@@ -16,7 +16,7 @@ use std::borrow::Cow;
 ///
 /// `pub(crate)` because `llm_gemini` 也要在它自己的解析路径上跑同一套清洗，
 /// 否则 polish prompt 已经禁用的"以下是整理后的内容"前缀只在 OpenAI 兼容路径生效。
-pub(crate) fn clean_polish_output(content: &str) -> String {
+pub fn clean_polish_output(content: &str) -> String {
     let without_thinking = strip_thinking_blocks(content);
     let trimmed = without_thinking.trim();
     let stripped = strip_markdown_fence(trimmed);
