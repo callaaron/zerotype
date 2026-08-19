@@ -32,7 +32,7 @@ pub async fn handle_session(state: SharedState, socket: WebSocket) {
             Some("hello") => {
                 let token = frame.get("token").and_then(|v| v.as_str()).unwrap_or("");
                 let bearer = format!("Bearer {token}");
-                match user_from_bearer(&state, Some(&bearer)) {
+                match user_from_bearer(&state, Some(&bearer)).await {
                     Ok(u) => {
                         user = Some(u);
                         let _ = sender.send(Message::Text(json!({ "type": "ready" }).to_string().into())).await;

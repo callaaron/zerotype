@@ -15,6 +15,7 @@ use axum::{
     routing::{get, post},
     Router,
 };
+use sqlx::sqlite::{SqliteConnectOptions, SqlitePoolOptions};
 use tower_http::cors::CorsLayer;
 
 /// 全局状态：认证 / 配额 / 网关配置。
@@ -36,22 +37,29 @@ async fn main() -> anyhow::Result<()> {
         )
         .init();
 
+    // 存储：SQLite 起步（零运维）；切 Postgres 时改用 PgPoolOptions + DATABASE_URL。
+    // 显式 filename + create_if_missing，避免 sqlx URL 解析歧义（sqlite:// 三斜杠形式）。
+    let db_path = std::env::var("ZEROTYPE_DB_PATH").unwrap_or_else(|_| "zerotype.db".into());
+    let options = sqlx::sqlite::SqliteConnectOptions::new()
+        .filename(&db_path)
+        .create_if_missing(true);
+    let pool = SqlitePoolOptions::new()
+        .max_connections(8)
+        .connect_with(options)
+        .await?;
+    let users = auth::UserStore::new(pool.clone());
+    let quotas = quota::QuotaStore::new(pool);
+    users.init().await?;
+    quotas.init().await?;
+
     let state = Arc::new(AppState {
-        users: auth::UserStore::default(),
-        quotas: quota::QuotaStore::default(),
+        users,
+        quotas,
         llm: dictate::LlmConfig::from_env(),
         asr: dictate::AsrConfig::from_env(),
     });
 
-    let app = Router::new()
-        .route("/health", get(health))
-        .route("/auth/register", post(auth::register))
-        .route("/auth/login", post(auth::login))
-        .route("/auth/me", get(auth::me))
-        .route("/dictate", post(dictate::dictate))
-        .route("/ws", get(ws_upgrade))
-        .layer(CorsLayer::permissive())
-        .with_state(state);
+    let app = build_router(state.clone());
 
     let addr = std::env::var("ZEROTYPE_ADDR").unwrap_or_else(|_| "0.0.0.0:8300".into());
     let listener = tokio::net::TcpListener::bind(&addr).await?;
@@ -71,3 +79,21 @@ async fn ws_upgrade(
 ) -> axum::response::Response {
     ws.on_upgrade(move |socket| ws::handle_session(state, socket))
 }
+
+
+/// 组装路由（main 与集成测试共用）。
+fn build_router(state: SharedState) -> Router {
+    Router::new()
+        .route("/health", get(health))
+        .route("/auth/register", post(auth::register))
+        .route("/auth/login", post(auth::login))
+        .route("/auth/me", get(auth::me))
+        .route("/dictate", post(dictate::dictate))
+        .route("/ws", get(ws_upgrade))
+        .layer(CorsLayer::permissive())
+        .with_state(state)
+}
+
+#[cfg(test)]
+mod e2e;
+

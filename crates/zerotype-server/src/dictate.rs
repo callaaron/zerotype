@@ -88,7 +88,7 @@ pub async fn dictate(
     headers: axum::http::HeaderMap,
     Json(req): Json<DictateRequest>,
 ) -> impl IntoResponse {
-    let user = match user_from_bearer(&state, headers.get(axum::http::header::AUTHORIZATION).and_then(|v| v.to_str().ok())) {
+    let user = match user_from_bearer(&state, headers.get(axum::http::header::AUTHORIZATION).and_then(|v| v.to_str().ok())).await {
         Ok(u) => u,
         Err(e) => return (StatusCode::UNAUTHORIZED, Json(DictateError::new(&e))).into_response(),
     };
@@ -133,7 +133,7 @@ pub async fn run_pipeline(
             text: String::new(),
             raw_text,
             chars: 0,
-            quota: state.quotas.status(&user.id),
+            quota: state.quotas.status(&user.id).await,
         });
     }
 
@@ -164,7 +164,7 @@ pub async fn run_pipeline(
 
     // 3) 记账（超额不阻断，Phase 2 接入支付升级）。
     let chars = polished.chars().count() as u64;
-    let quota = state.quotas.record(&user.id, chars);
+    let quota = state.quotas.record(&user.id, chars).await;
     tracing::info!(
         "dictate user={} chars={} asr_ms={} mode={:?}",
         user.email,
