@@ -4,7 +4,7 @@
 //!
 //! ## Architecture
 //!
-//! ```
+//! ```text
 //! DictationSession ──→ extract_ngrams() ──→ score_candidates()
 //!                                              │
 //!                        ┌─────────────────────┘

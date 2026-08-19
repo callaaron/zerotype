@@ -188,6 +188,8 @@ mod tests {
                 id: "test".into(),
                 name: "测试".into(),
                 phrases: vec!["PR".into(), "CI".into()],
+                kind: None,
+                description: None,
             }],
             overrides: vec![],
             disabled_builtin_preset_ids: vec!["chef".into()],

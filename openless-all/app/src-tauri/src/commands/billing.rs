@@ -28,6 +28,8 @@ pub fn admin_set_user_quota(
     user_id: String,
     limit: u64,
 ) -> Result<(), String> {
+    // P0 修复：此前无任何鉴权，任意调用方可把任意用户配额改为无限。
+    crate::commands::auth::require_admin(&coord)?;
     coord.billing().set_override_limit(&user_id, limit)
 }
 

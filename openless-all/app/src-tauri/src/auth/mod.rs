@@ -2,7 +2,7 @@
 //!
 //! ## Architecture
 //!
-//! ```
+//! ```text
 //! Login/Register → AuthStore (JSON file, bcrypt passwords)
 //!                     │
 //!                     ├── User records: {id, email, phone, password_hash, created_at}

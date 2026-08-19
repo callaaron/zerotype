@@ -2,7 +2,7 @@
 //!
 //! ## Architecture
 //!
-//! ```
+//! ```text
 //! Recorder PCM → Buffer (5s) → Extract features → Match against profiles → Speaker ID
 //!                                                │
 //!                              Enroll: store features as new profile
