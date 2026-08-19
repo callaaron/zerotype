@@ -181,25 +181,8 @@ pub fn legacy_modifier_trigger(binding: &ShortcutBinding) -> Option<HotkeyTrigge
     }
 }
 
-pub fn binding_from_legacy_trigger(trigger: HotkeyTrigger) -> ShortcutBinding {
-    let primary = match trigger {
-        HotkeyTrigger::RightOption | HotkeyTrigger::RightAlt => "RightOption",
-        HotkeyTrigger::LeftOption => "LeftOption",
-        HotkeyTrigger::RightControl => "RightControl",
-        HotkeyTrigger::LeftControl => "LeftControl",
-        HotkeyTrigger::RightCommand => "RightCommand",
-        HotkeyTrigger::LeftCommand => "LeftCommand",
-        HotkeyTrigger::LeftShift => "LeftShift",
-        HotkeyTrigger::RightShift => "RightShift",
-        HotkeyTrigger::Fn => "Fn",
-        HotkeyTrigger::MediaPlayPause => "MediaPlayPause",
-        HotkeyTrigger::Custom => "RightOption",
-    };
-    ShortcutBinding {
-        primary: primary.into(),
-        modifiers: Vec::new(),
-    }
-}
+// 已迁入 zerotype-core（types.rs 依赖），此处重导出保持路径不变。
+pub use zerotype_core::types::binding_from_legacy_trigger;
 
 pub fn normalize_side_modifier_tag(raw: &str) -> String {
     match raw.trim().to_ascii_lowercase().as_str() {

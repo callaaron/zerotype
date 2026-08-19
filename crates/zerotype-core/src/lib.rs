@@ -5,5 +5,7 @@
 //! 模块逐个从 openless-all/app/src-tauri/src 迁入；桌面端保留同名 shim 重导出，
 //! 使 crate:: 路径零改动。
 
+pub mod constants;
 pub mod coordinator_state;
 pub mod hotword_scoring;
+pub mod types;

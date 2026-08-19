@@ -1,7 +1,10 @@
 use serde::Serialize;
 
-pub const PROVIDER_ID: &str = "foundry-local-whisper";
-pub const DEFAULT_MODEL_ALIAS: &str = "whisper-small";
+// 常量已迁入 zerotype-core（types.rs 依赖它们），此处重导出保持路径不变。
+pub use zerotype_core::constants::{
+    FOUNDRY_DEFAULT_MODEL_ALIAS as DEFAULT_MODEL_ALIAS,
+    FOUNDRY_LOCAL_PROVIDER_ID as PROVIDER_ID,
+};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "camelCase")]

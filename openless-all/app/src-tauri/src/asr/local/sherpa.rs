@@ -10,7 +10,8 @@ use anyhow::Result;
 use serde::Serialize;
 
 pub const PROVIDER_ID: &str = "sherpa-onnx-local";
-pub const DEFAULT_MODEL_ALIAS: &str = "sense-voice-small-zh";
+// 默认模型别名已迁入 zerotype-core（types.rs 依赖），此处重导出保持路径不变。
+pub use zerotype_core::constants::SHERPA_DEFAULT_MODEL_ALIAS as DEFAULT_MODEL_ALIAS;
 pub const DEFAULT_ONLINE_MODEL_ALIAS: &str = "zipformer-bilingual-zh-en-streaming";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
