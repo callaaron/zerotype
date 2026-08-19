@@ -321,6 +321,7 @@ mod tests {
 
     #[tokio::test]
     async fn mimo_posts_chat_completion_audio_request() {
+    crate::bypass_proxy_for_tests();
         let listener = TcpListener::bind("127.0.0.1:0").unwrap();
         listener.set_nonblocking(true).unwrap();
         let addr = listener.local_addr().unwrap();
@@ -373,6 +374,7 @@ mod tests {
 
     #[tokio::test]
     async fn mimo_splits_audio_before_base64_limit() {
+    crate::bypass_proxy_for_tests();
         let listener = TcpListener::bind("127.0.0.1:0").unwrap();
         listener.set_nonblocking(true).unwrap();
         let addr = listener.local_addr().unwrap();

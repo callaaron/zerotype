@@ -29,7 +29,9 @@ impl LlmConfig {
             api_key: std::env::var("ZEROTYPE_LLM_API_KEY").unwrap_or_default(),
             base_url: std::env::var("ZEROTYPE_LLM_BASE_URL")
                 .unwrap_or_else(|_| "https://api.deepseek.com/v1".into()),
-            model: std::env::var("ZEROTYPE_LLM_MODEL").unwrap_or_else(|_| "deepseek-chat".into()),
+            // deepseek-chat/reasoner 已于 2026-07-24 停用，现用 V4 系列（flash 性价比最高）。
+            model: std::env::var("ZEROTYPE_LLM_MODEL")
+                .unwrap_or_else(|_| "deepseek-v4-flash".into()),
         }
     }
 }
@@ -126,7 +128,7 @@ pub async fn run_pipeline(
     let RawTranscript { text: raw_text, duration_ms } = asr
         .transcribe()
         .await
-        .map_err(|e| format!("ASR 失败: {e}"))?;
+        .map_err(|e| format!("ASR 失败: {e:#}"))?;
     let raw_text = raw_text.trim().to_string();
     if raw_text.is_empty() {
         return Ok(DictateResponse {

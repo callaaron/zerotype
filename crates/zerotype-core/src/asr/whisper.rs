@@ -761,6 +761,7 @@ mod tests {
 
     #[tokio::test]
     async fn transcribe_posts_single_request_without_chunk_limit() {
+    crate::bypass_proxy_for_tests();
         let (base_url, server) = start_whisper_test_server(vec!["one"]);
         let asr = WhisperBatchASR::new(
             "key".to_string(),
@@ -782,6 +783,7 @@ mod tests {
 
     #[tokio::test]
     async fn transcribe_splits_requests_when_chunk_limit_is_set() {
+    crate::bypass_proxy_for_tests();
         let (base_url, server) = start_whisper_test_server(vec!["你好", "world", "尾"]);
         let asr = WhisperBatchASR::new(
             "key".to_string(),
@@ -803,6 +805,7 @@ mod tests {
 
     #[tokio::test]
     async fn openrouter_format_posts_json_with_base64_audio() {
+    crate::bypass_proxy_for_tests();
         // issue #582：OpenRouterJson 走 application/json + input_audio.data(base64)，
         // 而非 multipart；响应仍按 {text} 解析。
         let listener = TcpListener::bind("127.0.0.1:0").unwrap();
@@ -860,6 +863,7 @@ mod tests {
 
     #[tokio::test]
     async fn hotwords_sent_as_json_array_field_without_prompt() {
+    crate::bypass_proxy_for_tests();
         // StepFun 形状：词典走一等 `hotwords`（JSON 数组字符串）而非 `prompt`；
         // 空白词条过滤后编码。
         let listener = TcpListener::bind("127.0.0.1:0").unwrap();

@@ -319,6 +319,7 @@ mod tests {
 
     #[tokio::test]
     async fn transcribe_posts_multipart_speech_to_text_request() {
+    crate::bypass_proxy_for_tests();
         let listener = TcpListener::bind("127.0.0.1:0").unwrap();
         listener.set_nonblocking(true).unwrap();
         let addr = listener.local_addr().unwrap();
@@ -385,6 +386,7 @@ mod tests {
 
     #[tokio::test]
     async fn transcribe_redacts_untrusted_error_response_body() {
+    crate::bypass_proxy_for_tests();
         let listener = TcpListener::bind("127.0.0.1:0").unwrap();
         listener.set_nonblocking(true).unwrap();
         let addr = listener.local_addr().unwrap();
@@ -437,6 +439,7 @@ mod tests {
 
     #[tokio::test]
     async fn transcribe_does_not_follow_redirects_with_credentials() {
+    crate::bypass_proxy_for_tests();
         let redirect_listener = TcpListener::bind("127.0.0.1:0").unwrap();
         let redirect_addr = redirect_listener.local_addr().unwrap();
         let target_listener = TcpListener::bind("127.0.0.1:0").unwrap();

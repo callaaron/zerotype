@@ -39,6 +39,10 @@ async fn spawn_mock_provider() -> u16 {
 }
 
 async fn test_state(provider_port: u16) -> SharedState {
+    // 本机系统代理（如 Clash 127.0.0.1:7897）会劫持 reqwest 的 localhost 连接；
+    // 测试一律直连本机 mock，显式绕过代理。
+    std::env::set_var("NO_PROXY", "127.0.0.1,localhost");
+    std::env::set_var("no_proxy", "127.0.0.1,localhost");
     let pool = sqlx::sqlite::SqlitePoolOptions::new()
         .max_connections(2)
         .connect("sqlite::memory:")

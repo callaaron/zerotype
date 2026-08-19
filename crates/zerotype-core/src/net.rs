@@ -164,6 +164,7 @@ mod tests {
 
     #[tokio::test]
     async fn credential_client_never_follows_redirects_or_forwards_bearer() {
+    crate::bypass_proxy_for_tests();
         let redirect_target = TcpListener::bind("127.0.0.1:0").await.unwrap();
         let target_url = format!("http://{}", redirect_target.local_addr().unwrap());
         let source = TcpListener::bind("127.0.0.1:0").await.unwrap();

@@ -309,6 +309,7 @@ mod tests {
 
     #[tokio::test]
     async fn posts_multimodal_generation_request() {
+    crate::bypass_proxy_for_tests();
         let listener = TcpListener::bind("127.0.0.1:0").unwrap();
         listener.set_nonblocking(true).unwrap();
         let addr = listener.local_addr().unwrap();
