@@ -8383,7 +8383,17 @@ dependencies = [
  "window-vibrancy 0.7.1",
  "windows 0.58.0",
  "winreg 0.52.0",
+ "zerotype-core",
  "zip 2.4.2",
+]
+
+[[package]]
+name = "zerotype-core"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "uuid",
 ]
 
 [[package]]
