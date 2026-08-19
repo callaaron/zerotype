@@ -6,9 +6,9 @@ use serde::{Deserialize, Serialize};
 // Android 类型随 types 一起迁入 core（原为 app 内 #[path] 引用）。
 pub mod android_types;
 
-use crate::constants::{
-    FOUNDRY_DEFAULT_MODEL_ALIAS, FOUNDRY_LOCAL_PROVIDER_ID, SHERPA_DEFAULT_MODEL_ALIAS,
-};
+#[cfg(target_os = "windows")]
+use crate::constants::FOUNDRY_LOCAL_PROVIDER_ID;
+use crate::constants::{FOUNDRY_DEFAULT_MODEL_ALIAS, SHERPA_DEFAULT_MODEL_ALIAS};
 
 use android_types::{
     default_android_insert_strategy, default_android_overlay_activation_mode,
